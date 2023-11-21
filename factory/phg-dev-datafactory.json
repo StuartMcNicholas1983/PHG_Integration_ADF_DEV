@@ -1,0 +1,17 @@
+{
+	"name": "phg-dev-datafactory",
+	"properties": {
+		"globalParameters": {
+			"Environment": {
+				"type": "string",
+				"value": "DEV"
+			}
+		}
+	},
+	"location": "ukwest",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "f5e07203-9e02-4dd4-a889-26514db80fc5",
+		"tenantId": "668364d4-3d43-4051-adbc-5bbb517a46fc"
+	}
+}
