@@ -234,12 +234,33 @@
 					"isSequential": true,
 					"activities": [
 						{
-							"name": "Wait1",
-							"type": "Wait",
+							"name": "Post Full Load - Checksum",
+							"type": "SqlServerStoredProcedure",
 							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
 							"userProperties": [],
 							"typeProperties": {
-								"waitTimeInSeconds": 1
+								"storedProcedureName": "[d365].[spUpdate_PostFullLoad_Checksum]"
+							},
+							"linkedServiceName": {
+								"referenceName": "SqlServer_OnPrem",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"ServerName": {
+										"value": "@item().SrcServer",
+										"type": "Expression"
+									},
+									"DatabaseName": {
+										"value": "@item().SrcDatabase",
+										"type": "Expression"
+									}
+								}
 							}
 						}
 					]
