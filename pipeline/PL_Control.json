@@ -1364,6 +1364,10 @@
 				],
 				"userProperties": [],
 				"typeProperties": {
+					"on": {
+						"value": "@pipeline().parameters.LoadType",
+						"type": "Expression"
+					},
 					"cases": [
 						{
 							"value": "Full",
