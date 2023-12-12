@@ -5360,6 +5360,17 @@
 																						"name": "phg_placetype",
 																						"type": "String"
 																					}
+																				},
+																				{
+																					"source": {
+																						"name": "phg_tenancyid",
+																						"type": "Guid",
+																						"physicalType": "Guid"
+																					},
+																					"sink": {
+																						"name": "phg_tenancyid",
+																						"type": "Guid"
+																					}
 																				}
 																			],
 																			"typeConversion": true,
@@ -5835,6 +5846,17 @@
 																					"sink": {
 																						"name": "phg_checksum",
 																						"type": "String"
+																					}
+																				},
+																				{
+																					"source": {
+																						"name": "phg_propertyid",
+																						"type": "Guid",
+																						"physicalType": "Guid"
+																					},
+																					"sink": {
+																						"name": "phg_propertyid",
+																						"type": "Guid"
 																					}
 																				}
 																			],
@@ -21992,6 +22014,18 @@
 				"[concat(variables('factoryId'), '/datasets/DS_Datalake_PipeDelimited')]",
 				"[concat(variables('factoryId'), '/datasets/DS_Dataverse')]"
 			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/credential1')]",
+			"type": "Microsoft.DataFactory/factories/credentials",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "ManagedIdentity",
+				"typeProperties": {
+					"resourceId": "/subscriptions/83e38fc3-11f8-44f0-87d5-048acb1450dc/resourceGroups/PLATFORM_Development/providers/Microsoft.ManagedIdentity/userAssignedIdentities/UAMA_Dev"
+				}
+			},
+			"dependsOn": []
 		}
 	]
 }
