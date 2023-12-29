@@ -360,7 +360,7 @@
 						"type": "Lookup",
 						"dependsOn": [
 							{
-								"activity": "LoadType",
+								"activity": "Entity Duplicates",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -1496,6 +1496,32 @@
 								}
 							]
 						}
+					},
+					{
+						"name": "Entity Duplicates",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "LoadType",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "PL_EntityDuplicates",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"PipelineName": {
+									"value": "@pipeline().parameters.PipelineName",
+									"type": "Expression"
+								}
+							}
+						}
 					}
 				],
 				"concurrency": 1,
@@ -1536,6 +1562,7 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/DS_SQL_Control')]",
 				"[concat(variables('factoryId'), '/linkedServices/Control')]",
+				"[concat(variables('factoryId'), '/pipelines/PL_EntityDuplicates')]",
 				"[concat(variables('factoryId'), '/pipelines/PL_ReferenceEntities')]",
 				"[concat(variables('factoryId'), '/pipelines/PL_CoreEntities_A')]",
 				"[concat(variables('factoryId'), '/linkedServices/SqlServer_OnPrem')]",
@@ -12303,6 +12330,119 @@
 				"[concat(variables('factoryId'), '/datasets/DS_SQL_OnPrem')]",
 				"[concat(variables('factoryId'), '/dataflows/DF_DeleteEntityData')]",
 				"[concat(variables('factoryId'), '/datasets/DS_Datalake_PipeDelimited')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/PL_EntityDuplicates')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "SourceSystems",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderStoredProcedureName": "[[dbo].[spGet_PipelineParameters_SourceSystems]",
+								"storedProcedureParameters": {
+									"pipeline": {
+										"type": "String",
+										"value": {
+											"value": "@pipeline().parameters.PipelineName",
+											"type": "Expression"
+										}
+									}
+								},
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "DS_SQL_Control",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "SourceSystem",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "SourceSystems",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('SourceSystems').output.value\n",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "Config - Get Core Entity Duplicates",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[adf].[spGetCoreEntityDuplicates]"
+									},
+									"linkedServiceName": {
+										"referenceName": "SqlServer_OnPrem",
+										"type": "LinkedServiceReference",
+										"parameters": {
+											"ServerName": {
+												"value": "@item().srcServerName",
+												"type": "Expression"
+											},
+											"DatabaseName": {
+												"value": "@item().SrcDatabase",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"PipelineName": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "OH_D365_DataSync/Duplicates"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_SQL_Control')]",
+				"[concat(variables('factoryId'), '/linkedServices/SqlServer_OnPrem')]"
 			]
 		},
 		{

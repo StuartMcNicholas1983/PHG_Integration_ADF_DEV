@@ -49,6 +49,71 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/DF_DeleteEntityData')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "OH_D365_DataSync/Delete"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DS_Datalake_PipeDelimited",
+								"type": "DatasetReference"
+							},
+							"name": "DeletionData"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DS_Dataverse",
+								"type": "DatasetReference"
+							},
+							"name": "SinkDelete"
+						}
+					],
+					"transformations": [
+						{
+							"name": "AlterRowProperty"
+						},
+						{
+							"name": "SelectColumn"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          Entity as string,",
+						"          phg_integrationkey as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> DeletionData",
+						"SelectColumn alterRow(deleteIf(true())) ~> AlterRowProperty",
+						"DeletionData select(mapColumn(",
+						"          phg_integrationkey",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelectColumn",
+						"AlterRowProperty sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:true,",
+						"     insertable:false,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     alternateKeyName: 'phg_integrationkey',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 0) ~> SinkDelete"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/PL_CoreEntities_A')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -10312,7 +10377,9 @@
 				"annotations": [],
 				"lastPublishTime": "2023-11-17T16:55:46Z"
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/DF_DeleteEntityData')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/PL_FullLoadReset')]",
@@ -18873,7 +18940,7 @@
 						"type": "Lookup",
 						"dependsOn": [
 							{
-								"activity": "LoadType",
+								"activity": "Entity Duplicates",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -20008,6 +20075,32 @@
 									]
 								}
 							]
+						}
+					},
+					{
+						"name": "Entity Duplicates",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "LoadType",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "PL_EntityDuplicates",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"PipelineName": {
+									"value": "@pipeline().parameters.PipelineName",
+									"type": "Expression"
+								}
+							}
 						}
 					}
 				],
