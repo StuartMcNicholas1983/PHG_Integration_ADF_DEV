@@ -1,0 +1,103 @@
+{
+	"name": "PL_EntityDuplicates",
+	"properties": {
+		"activities": [
+			{
+				"name": "SourceSystems",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderStoredProcedureName": "[dbo].[spGet_PipelineParameters_SourceSystems]",
+						"storedProcedureParameters": {
+							"pipeline": {
+								"type": "String",
+								"value": {
+									"value": "@pipeline().parameters.PipelineName",
+									"type": "Expression"
+								}
+							}
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_SQL_Control",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "SourceSystem",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "SourceSystems",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('SourceSystems').output.value\n",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Config - Get Core Entity Duplicates",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[adf].[spGetCoreEntityDuplicates]"
+							},
+							"linkedServiceName": {
+								"referenceName": "SqlServer_OnPrem",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"ServerName": {
+										"value": "@item().srcServerName",
+										"type": "Expression"
+									},
+									"DatabaseName": {
+										"value": "@item().SrcDatabase",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"PipelineName": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "OH_D365_DataSync/Duplicates"
+		},
+		"annotations": []
+	}
+}
