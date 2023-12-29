@@ -269,7 +269,7 @@
 				"type": "Lookup",
 				"dependsOn": [
 					{
-						"activity": "LoadType",
+						"activity": "Entity Duplicates",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -1398,6 +1398,32 @@
 							]
 						}
 					]
+				}
+			},
+			{
+				"name": "Entity Duplicates",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "LoadType",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "PL_EntityDuplicates",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"PipelineName": {
+							"value": "@pipeline().parameters.PipelineName",
+							"type": "Expression"
+						}
+					}
 				}
 			}
 		],
