@@ -85,6 +85,141 @@
 									}
 								}
 							}
+						},
+						{
+							"name": "Copy data1",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Config - Get Core Entity Duplicates",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "SqlServerSource",
+									"sqlReaderStoredProcedureName": "[adf].[spGetCoreEntityDuplicates]",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "AzureSqlSink",
+									"preCopyScript": {
+										"value": "@concat('delete from [dbo].[SourceSystemEntityDuplicates] where SrcSystem =''', item().SrcSystem,'''')\n",
+										"type": "Expression"
+									},
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"mappings": [
+										{
+											"source": {
+												"name": "SourceSystem",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "SrcSystem",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "EntityView",
+												"type": "String",
+												"physicalType": "varchar"
+											},
+											"sink": {
+												"name": "EntityView",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "EntityAttribute",
+												"type": "String",
+												"physicalType": "varchar"
+											},
+											"sink": {
+												"name": "EntityAttribute",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "AttributeValue",
+												"type": "String",
+												"physicalType": "nvarchar"
+											},
+											"sink": {
+												"name": "AttributeValue",
+												"type": "String",
+												"physicalType": "nvarchar"
+											}
+										},
+										{
+											"source": {
+												"name": "Duplicates",
+												"type": "Int32",
+												"physicalType": "int"
+											},
+											"sink": {
+												"name": "AttributeDuplicates",
+												"type": "Int32",
+												"physicalType": "int"
+											}
+										}
+									],
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_SQL_OnPrem",
+									"type": "DatasetReference",
+									"parameters": {
+										"ServerName": {
+											"value": "@item().srcServerName",
+											"type": "Expression"
+										},
+										"DatabaseName": {
+											"value": "@item().SrcDatabase",
+											"type": "Expression"
+										},
+										"SchemaName": "dbo"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_SQL_Control_Tbl",
+									"type": "DatasetReference",
+									"parameters": {
+										"SchemaName": "dbo",
+										"TableName": "SourceSystemEntityDuplicates"
+									}
+								}
+							]
 						}
 					]
 				}
@@ -96,7 +231,7 @@
 			}
 		},
 		"folder": {
-			"name": "OH_D365_DataSync/Duplicates"
+			"name": "OH_D365_DataSync/Child Packages/Duplicates"
 		},
 		"annotations": []
 	}
