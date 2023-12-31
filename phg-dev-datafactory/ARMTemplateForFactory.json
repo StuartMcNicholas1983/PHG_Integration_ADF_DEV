@@ -360,7 +360,7 @@
 						"type": "Lookup",
 						"dependsOn": [
 							{
-								"activity": "Entity Duplicates",
+								"activity": "LoadType",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -1504,7 +1504,7 @@
 							{
 								"activity": "LoadType",
 								"dependencyConditions": [
-									"Succeeded"
+									"Failed"
 								]
 							}
 						],
@@ -8105,6 +8105,10 @@
 																					"type": "Expression"
 																				},
 																				"type": "String"
+																			},
+																			"intDestEntityRowCount": {
+																				"value": "99",
+																				"type": "Int32"
 																			}
 																		}
 																	},
@@ -8426,6 +8430,10 @@
 																					"type": "Expression"
 																				},
 																				"type": "String"
+																			},
+																			"intDestEntityRowCount": {
+																				"value": "98",
+																				"type": "Int32"
 																			}
 																		}
 																	},
@@ -8802,6 +8810,10 @@
 																					"type": "Expression"
 																				},
 																				"type": "String"
+																			},
+																			"intDestEntityRowCount": {
+																				"value": "97",
+																				"type": "Int32"
 																			}
 																		}
 																	},
@@ -9112,6 +9124,10 @@
 																					"type": "Expression"
 																				},
 																				"type": "String"
+																			},
+																			"intDestEntityRowCount": {
+																				"value": "96",
+																				"type": "Int32"
 																			}
 																		}
 																	},
@@ -9543,6 +9559,10 @@
 																					"type": "Expression"
 																				},
 																				"type": "String"
+																			},
+																			"intDestEntityRowCount": {
+																				"value": "95",
+																				"type": "Int32"
 																			}
 																		}
 																	},
@@ -9809,6 +9829,10 @@
 																					"type": "Expression"
 																				},
 																				"type": "String"
+																			},
+																			"intDestEntityRowCount": {
+																				"value": "94",
+																				"type": "Int32"
 																			}
 																		}
 																	},
@@ -12394,46 +12418,9 @@
 							"isSequential": true,
 							"activities": [
 								{
-									"name": "Config - Get Core Entity Duplicates",
-									"type": "SqlServerStoredProcedure",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "0.12:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"storedProcedureName": "[[adf].[spGetCoreEntityDuplicates]"
-									},
-									"linkedServiceName": {
-										"referenceName": "SqlServer_OnPrem",
-										"type": "LinkedServiceReference",
-										"parameters": {
-											"ServerName": {
-												"value": "@item().SrcServer",
-												"type": "Expression"
-											},
-											"DatabaseName": {
-												"value": "@item().SrcDatabase",
-												"type": "Expression"
-											}
-										}
-									}
-								},
-								{
 									"name": "Copy data1",
 									"type": "Copy",
-									"dependsOn": [
-										{
-											"activity": "Config - Get Core Entity Duplicates",
-											"dependencyConditions": [
-												"Succeeded"
-											]
-										}
-									],
+									"dependsOn": [],
 									"policy": {
 										"timeout": "0.12:00:00",
 										"retry": 0,
@@ -12451,10 +12438,6 @@
 										},
 										"sink": {
 											"type": "AzureSqlSink",
-											"preCopyScript": {
-												"value": "@{concat('delete from [dbo].[SourceSystemEntityDuplicates] where SrcSystem =''', item().SrcSystem,'''')\n}",
-												"type": "Expression"
-											},
 											"writeBehavior": "insert",
 											"sqlWriterUseTableLock": false,
 											"disableMetricsCollection": false
@@ -12465,7 +12448,7 @@
 											"mappings": [
 												{
 													"source": {
-														"name": "SourceSystem",
+														"name": "SrcSystem",
 														"type": "String",
 														"physicalType": "nvarchar"
 													},
@@ -12513,7 +12496,7 @@
 												},
 												{
 													"source": {
-														"name": "Duplicates",
+														"name": "AttributeDuplicates",
 														"type": "Int32",
 														"physicalType": "int"
 													},
@@ -12578,7 +12561,6 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/DS_SQL_Control')]",
-				"[concat(variables('factoryId'), '/linkedServices/SqlServer_OnPrem')]",
 				"[concat(variables('factoryId'), '/datasets/DS_SQL_OnPrem')]",
 				"[concat(variables('factoryId'), '/datasets/DS_SQL_Control_Tbl')]"
 			]
