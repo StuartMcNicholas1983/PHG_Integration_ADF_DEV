@@ -683,7 +683,7 @@
 															"type": "SqlServerStoredProcedure",
 															"dependsOn": [
 																{
-																	"activity": "Trfd_to_Dest - HousingAccount",
+																	"activity": "Script1",
 																	"dependencyConditions": [
 																		"Completed"
 																	]
@@ -810,7 +810,14 @@
 														{
 															"name": "Script1",
 															"type": "Script",
-															"dependsOn": [],
+															"dependsOn": [
+																{
+																	"activity": "Trfd_to_Dest - HousingAccount",
+																	"dependencyConditions": [
+																		"Completed"
+																	]
+																}
+															],
 															"policy": {
 																"timeout": "0.12:00:00",
 																"retry": 0,
