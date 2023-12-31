@@ -77,10 +77,6 @@
 								},
 								"sink": {
 									"type": "AzureSqlSink",
-									"preCopyScript": {
-										"value": "@{concat('delete from [dbo].[SourceSystemEntityDuplicates] where SrcSystem =''', item().SrcSystem,'''')\n}",
-										"type": "Expression"
-									},
 									"writeBehavior": "insert",
 									"sqlWriterUseTableLock": false,
 									"disableMetricsCollection": false
