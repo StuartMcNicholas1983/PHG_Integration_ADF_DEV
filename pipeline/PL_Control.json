@@ -269,7 +269,7 @@
 				"type": "Lookup",
 				"dependsOn": [
 					{
-						"activity": "Entity Duplicates",
+						"activity": "LoadType",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -1407,7 +1407,7 @@
 					{
 						"activity": "LoadType",
 						"dependencyConditions": [
-							"Succeeded"
+							"Failed"
 						]
 					}
 				],
