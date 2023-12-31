@@ -57,46 +57,9 @@
 					"isSequential": true,
 					"activities": [
 						{
-							"name": "Config - Get Core Entity Duplicates",
-							"type": "SqlServerStoredProcedure",
-							"dependsOn": [],
-							"policy": {
-								"timeout": "0.12:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"storedProcedureName": "[adf].[spGetCoreEntityDuplicates]"
-							},
-							"linkedServiceName": {
-								"referenceName": "SqlServer_OnPrem",
-								"type": "LinkedServiceReference",
-								"parameters": {
-									"ServerName": {
-										"value": "@item().SrcServer",
-										"type": "Expression"
-									},
-									"DatabaseName": {
-										"value": "@item().SrcDatabase",
-										"type": "Expression"
-									}
-								}
-							}
-						},
-						{
 							"name": "Copy data1",
 							"type": "Copy",
-							"dependsOn": [
-								{
-									"activity": "Config - Get Core Entity Duplicates",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
+							"dependsOn": [],
 							"policy": {
 								"timeout": "0.12:00:00",
 								"retry": 0,
@@ -129,6 +92,7 @@
 										{
 											"source": {
 												"name": "SrcSystem",
+												"type": "String",
 												"physicalType": "nvarchar"
 											},
 											"sink": {
@@ -176,6 +140,7 @@
 										{
 											"source": {
 												"name": "AttributeDuplicates",
+												"type": "Int32",
 												"physicalType": "int"
 											},
 											"sink": {
