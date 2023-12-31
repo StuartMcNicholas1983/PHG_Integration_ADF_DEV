@@ -6129,12 +6129,52 @@
 																"type": "Expression"
 															},
 															"type": "String"
+														},
+														"intDestEntityRowCount": {
+															"value": "-2",
+															"type": "Int32"
 														}
 													}
 												},
 												"linkedServiceName": {
 													"referenceName": "Control",
 													"type": "LinkedServiceReference"
+												}
+											},
+											{
+												"name": "Script1_copy1",
+												"type": "Script",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"linkedServiceName": {
+													"referenceName": "SqlServer_OnPrem",
+													"type": "LinkedServiceReference",
+													"parameters": {
+														"ServerName": {
+															"value": "@item().srcServer",
+															"type": "Expression"
+														},
+														"DatabaseName": {
+															"value": "@item().srcDatabase",
+															"type": "Expression"
+														}
+													}
+												},
+												"typeProperties": {
+													"scripts": [
+														{
+															"type": "Query",
+															"text": "select count(*) as rc from d365.phg_property "
+														}
+													],
+													"scriptBlockExecutionTimeout": "02:00:00"
 												}
 											}
 										],
@@ -6632,6 +6672,42 @@
 																			}
 																		}
 																	]
+																},
+																{
+																	"name": "Script1",
+																	"type": "Script",
+																	"dependsOn": [],
+																	"policy": {
+																		"timeout": "0.12:00:00",
+																		"retry": 0,
+																		"retryIntervalInSeconds": 30,
+																		"secureOutput": false,
+																		"secureInput": false
+																	},
+																	"userProperties": [],
+																	"linkedServiceName": {
+																		"referenceName": "SqlServer_OnPrem",
+																		"type": "LinkedServiceReference",
+																		"parameters": {
+																			"ServerName": {
+																				"value": "@item().srcServer",
+																				"type": "Expression"
+																			},
+																			"DatabaseName": {
+																				"value": "@item().srcDatabase",
+																				"type": "Expression"
+																			}
+																		}
+																	},
+																	"typeProperties": {
+																		"scripts": [
+																			{
+																				"type": "Query",
+																				"text": "select count(*) as rc from d365.phg_property "
+																			}
+																		],
+																		"scriptBlockExecutionTimeout": "02:00:00"
+																	}
 																}
 															]
 														},
