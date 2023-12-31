@@ -7629,7 +7629,14 @@
 											{
 												"name": "PipelineParameters LogEnd",
 												"type": "SqlServerStoredProcedure",
-												"dependsOn": [],
+												"dependsOn": [
+													{
+														"activity": "Script - Entity RowCount",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
 												"policy": {
 													"timeout": "0.12:00:00",
 													"retry": 0,
@@ -7677,7 +7684,10 @@
 															"type": "String"
 														},
 														"intDestEntityRowCount": {
-															"value": "-2",
+															"value": {
+																"value": "@activity('Script - Entity RowCount').output.outputParameters.RowCount\n\n\n",
+																"type": "Expression"
+															},
 															"type": "Int32"
 														}
 													}
@@ -7688,7 +7698,7 @@
 												}
 											},
 											{
-												"name": "Script1_copy1",
+												"name": "Script - Entity RowCount",
 												"type": "Script",
 												"dependsOn": [],
 												"policy": {
@@ -7716,8 +7726,19 @@
 												"typeProperties": {
 													"scripts": [
 														{
+															"parameters": [
+																{
+																	"name": "RowCount",
+																	"type": "Int32",
+																	"value": null,
+																	"direction": "Output"
+																}
+															],
 															"type": "Query",
-															"text": "select count(*) as rc from d365.phg_property "
+															"text": {
+																"value": "@concat('select @RowCount = count(*) from d365.', item().DestEntity)",
+																"type": "Expression"
+															}
 														}
 													],
 													"scriptBlockExecutionTimeout": "02:00:00"
@@ -8147,7 +8168,7 @@
 																				"type": "String"
 																			},
 																			"intDestEntityRowCount": {
-																				"value": "99",
+																				"value": null,
 																				"type": "Int32"
 																			}
 																		}
@@ -8218,42 +8239,6 @@
 																			}
 																		}
 																	]
-																},
-																{
-																	"name": "Script1",
-																	"type": "Script",
-																	"dependsOn": [],
-																	"policy": {
-																		"timeout": "0.12:00:00",
-																		"retry": 0,
-																		"retryIntervalInSeconds": 30,
-																		"secureOutput": false,
-																		"secureInput": false
-																	},
-																	"userProperties": [],
-																	"linkedServiceName": {
-																		"referenceName": "SqlServer_OnPrem",
-																		"type": "LinkedServiceReference",
-																		"parameters": {
-																			"ServerName": {
-																				"value": "@item().srcServer",
-																				"type": "Expression"
-																			},
-																			"DatabaseName": {
-																				"value": "@item().srcDatabase",
-																				"type": "Expression"
-																			}
-																		}
-																	},
-																	"typeProperties": {
-																		"scripts": [
-																			{
-																				"type": "Query",
-																				"text": "select count(*) as rc from d365.phg_property "
-																			}
-																		],
-																		"scriptBlockExecutionTimeout": "02:00:00"
-																	}
 																}
 															]
 														},
@@ -8508,7 +8493,7 @@
 																				"type": "String"
 																			},
 																			"intDestEntityRowCount": {
-																				"value": "98",
+																				"value": null,
 																				"type": "Int32"
 																			}
 																		}
@@ -8888,7 +8873,7 @@
 																				"type": "String"
 																			},
 																			"intDestEntityRowCount": {
-																				"value": "97",
+																				"value": null,
 																				"type": "Int32"
 																			}
 																		}
@@ -9202,7 +9187,7 @@
 																				"type": "String"
 																			},
 																			"intDestEntityRowCount": {
-																				"value": "96",
+																				"value": null,
 																				"type": "Int32"
 																			}
 																		}
@@ -9637,7 +9622,7 @@
 																				"type": "String"
 																			},
 																			"intDestEntityRowCount": {
-																				"value": "95",
+																				"value": null,
 																				"type": "Int32"
 																			}
 																		}
@@ -9907,7 +9892,7 @@
 																				"type": "String"
 																			},
 																			"intDestEntityRowCount": {
-																				"value": "94",
+																				"value": null,
 																				"type": "Int32"
 																			}
 																		}
@@ -21391,6 +21376,95 @@
 				"[concat(variables('factoryId'), '/datasets/DS_SQL_OnPrem')]",
 				"[concat(variables('factoryId'), '/datasets/DS_SQL_OnPrem_Tbl')]",
 				"[concat(variables('factoryId'), '/datasets/DS_Dataverse')]",
+				"[concat(variables('factoryId'), '/linkedServices/SqlServer_OnPrem')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Script1",
+						"type": "Script",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"linkedServiceName": {
+							"referenceName": "SqlServer_OnPrem",
+							"type": "LinkedServiceReference",
+							"parameters": {
+								"ServerName": "BBP-OHSQLTST-01\\RENTS",
+								"DatabaseName": "OH_D365_Config_DEV"
+							}
+						},
+						"typeProperties": {
+							"scripts": [
+								{
+									"parameters": [
+										{
+											"name": "RecordCount",
+											"type": "Int32",
+											"value": null,
+											"direction": "Output"
+										}
+									],
+									"type": "Query",
+									"text": {
+										"value": "@concat('select @RecordCount = count(*) from d365.', 'phg_property')",
+										"type": "Expression"
+									}
+								}
+							],
+							"scriptBlockExecutionTimeout": "02:00:00"
+						}
+					},
+					{
+						"name": "Set variable1",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Script1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "varRecordCount",
+							"value": {
+								"value": "@activity('Script1').output.outputParameters.RecordCount",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"variables": {
+					"varRecordCount": {
+						"type": "Integer"
+					}
+				},
+				"folder": {
+					"name": "OH_D365_DataSync"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/SqlServer_OnPrem')]"
 			]
 		},
