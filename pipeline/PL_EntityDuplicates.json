@@ -128,8 +128,7 @@
 									"mappings": [
 										{
 											"source": {
-												"name": "SourceSystem",
-												"type": "String",
+												"name": "SrcSystem",
 												"physicalType": "nvarchar"
 											},
 											"sink": {
@@ -176,8 +175,7 @@
 										},
 										{
 											"source": {
-												"name": "Duplicates",
-												"type": "Int32",
+												"name": "AttributeDuplicates",
 												"physicalType": "int"
 											},
 											"sink": {
