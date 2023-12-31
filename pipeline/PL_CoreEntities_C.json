@@ -213,7 +213,7 @@
 										"type": "SqlServerStoredProcedure",
 										"dependsOn": [
 											{
-												"activity": "Script1_copy1",
+												"activity": "Script - Entity RowCount",
 												"dependencyConditions": [
 													"Succeeded"
 												]
@@ -277,7 +277,7 @@
 										}
 									},
 									{
-										"name": "Script1_copy1",
+										"name": "Script - Entity RowCount",
 										"type": "Script",
 										"dependsOn": [],
 										"policy": {
@@ -306,7 +306,10 @@
 											"scripts": [
 												{
 													"type": "Query",
-													"text": "select count(*) as rc from d365.phg_property "
+													"text": {
+														"value": "@concat('select count(*) as rc from d365.', item().DestEntity)",
+														"type": "Expression"
+													}
 												}
 											],
 											"scriptBlockExecutionTimeout": "02:00:00"
