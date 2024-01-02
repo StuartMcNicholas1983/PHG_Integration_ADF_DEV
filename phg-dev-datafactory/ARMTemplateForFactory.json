@@ -15853,7 +15853,7 @@
 														"type": "SqlServerStoredProcedure",
 														"dependsOn": [
 															{
-																"activity": "D365_TransactionCurrency to SQL",
+																"activity": "Script - Entity RowCount - TransactionCurrency",
 																"dependencyConditions": [
 																	"Completed"
 																]
@@ -15906,7 +15906,10 @@
 																	"type": "String"
 																},
 																"intDestEntityRowCount": {
-																	"value": null,
+																	"value": {
+																		"value": "@activity('Script - Entity RowCount - TransactionCurrency').output.outputParameters.RowCount",
+																		"type": "Expression"
+																	},
 																	"type": "Int32"
 																}
 															}
@@ -15977,6 +15980,60 @@
 																}
 															}
 														]
+													},
+													{
+														"name": "Script - Entity RowCount - TransactionCurrency",
+														"type": "Script",
+														"dependsOn": [
+															{
+																"activity": "D365_TransactionCurrency to SQL",
+																"dependencyConditions": [
+																	"Completed"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"linkedServiceName": {
+															"referenceName": "SqlServer_OnPrem",
+															"type": "LinkedServiceReference",
+															"parameters": {
+																"ServerName": {
+																	"value": "@item().srcServer",
+																	"type": "Expression"
+																},
+																"DatabaseName": {
+																	"value": "@item().srcDatabase",
+																	"type": "Expression"
+																}
+															}
+														},
+														"typeProperties": {
+															"scripts": [
+																{
+																	"parameters": [
+																		{
+																			"name": "RowCount",
+																			"type": "Int32",
+																			"value": null,
+																			"direction": "Output"
+																		}
+																	],
+																	"type": "Query",
+																	"text": {
+																		"value": "@concat('select @RowCount = count(*) from d365.', item().DestEntity)",
+																		"type": "Expression"
+																	}
+																}
+															],
+															"scriptBlockExecutionTimeout": "02:00:00"
+														}
 													}
 												]
 											},
@@ -16111,7 +16168,7 @@
 														"type": "SqlServerStoredProcedure",
 														"dependsOn": [
 															{
-																"activity": "D365_Stringmap to SQL",
+																"activity": "Script - Entity RowCount - Stringmap",
 																"dependencyConditions": [
 																	"Completed"
 																]
@@ -16164,7 +16221,10 @@
 																	"type": "String"
 																},
 																"intDestEntityRowCount": {
-																	"value": null,
+																	"value": {
+																		"value": "@activity('Script - Entity RowCount - Stringmap').output.outputParameters.RowCount",
+																		"type": "Expression"
+																	},
 																	"type": "Int32"
 																}
 															}
@@ -16235,6 +16295,60 @@
 																}
 															}
 														]
+													},
+													{
+														"name": "Script - Entity RowCount - Stringmap",
+														"type": "Script",
+														"dependsOn": [
+															{
+																"activity": "D365_Stringmap to SQL",
+																"dependencyConditions": [
+																	"Completed"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"linkedServiceName": {
+															"referenceName": "SqlServer_OnPrem",
+															"type": "LinkedServiceReference",
+															"parameters": {
+																"ServerName": {
+																	"value": "@item().srcServer",
+																	"type": "Expression"
+																},
+																"DatabaseName": {
+																	"value": "@item().srcDatabase",
+																	"type": "Expression"
+																}
+															}
+														},
+														"typeProperties": {
+															"scripts": [
+																{
+																	"parameters": [
+																		{
+																			"name": "RowCount",
+																			"type": "Int32",
+																			"value": null,
+																			"direction": "Output"
+																		}
+																	],
+																	"type": "Query",
+																	"text": {
+																		"value": "@concat('select @RowCount = count(*) from d365.', item().DestEntity)",
+																		"type": "Expression"
+																	}
+																}
+															],
+															"scriptBlockExecutionTimeout": "02:00:00"
+														}
 													}
 												]
 											},
@@ -16451,7 +16565,7 @@
 														"type": "SqlServerStoredProcedure",
 														"dependsOn": [
 															{
-																"activity": "Reference Entity Code Map to SQL",
+																"activity": "Script - Entity RowCount - Reference Entity Code Map",
 																"dependencyConditions": [
 																	"Completed"
 																]
@@ -16504,7 +16618,10 @@
 																	"type": "String"
 																},
 																"intDestEntityRowCount": {
-																	"value": null,
+																	"value": {
+																		"value": "@activity('Script - Entity RowCount - Reference Entity Code Map').output.outputParameters.RowCount",
+																		"type": "Expression"
+																	},
 																	"type": "Int32"
 																}
 															}
@@ -16575,6 +16692,60 @@
 																}
 															}
 														]
+													},
+													{
+														"name": "Script - Entity RowCount - Reference Entity Code Map",
+														"type": "Script",
+														"dependsOn": [
+															{
+																"activity": "Reference Entity Code Map to SQL",
+																"dependencyConditions": [
+																	"Completed"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"linkedServiceName": {
+															"referenceName": "SqlServer_OnPrem",
+															"type": "LinkedServiceReference",
+															"parameters": {
+																"ServerName": {
+																	"value": "@item().srcServer",
+																	"type": "Expression"
+																},
+																"DatabaseName": {
+																	"value": "@item().srcDatabase",
+																	"type": "Expression"
+																}
+															}
+														},
+														"typeProperties": {
+															"scripts": [
+																{
+																	"parameters": [
+																		{
+																			"name": "RowCount",
+																			"type": "Int32",
+																			"value": null,
+																			"direction": "Output"
+																		}
+																	],
+																	"type": "Query",
+																	"text": {
+																		"value": "@concat('select @RowCount = count(*) from adf.', item().DestEntity)",
+																		"type": "Expression"
+																	}
+																}
+															],
+															"scriptBlockExecutionTimeout": "02:00:00"
+														}
 													}
 												]
 											},
@@ -16679,7 +16850,7 @@
 														"type": "SqlServerStoredProcedure",
 														"dependsOn": [
 															{
-																"activity": "D365_BusinessUnit to SQL",
+																"activity": "Script - Entity RowCount - BusinessUnit",
 																"dependencyConditions": [
 																	"Completed"
 																]
@@ -16732,7 +16903,10 @@
 																	"type": "String"
 																},
 																"intDestEntityRowCount": {
-																	"value": null,
+																	"value": {
+																		"value": "@activity('Script - Entity RowCount - BusinessUnit').output.outputParameters.RowCount",
+																		"type": "Expression"
+																	},
 																	"type": "Int32"
 																}
 															}
@@ -16803,6 +16977,60 @@
 																}
 															}
 														]
+													},
+													{
+														"name": "Script - Entity RowCount - BusinessUnit",
+														"type": "Script",
+														"dependsOn": [
+															{
+																"activity": "D365_BusinessUnit to SQL",
+																"dependencyConditions": [
+																	"Completed"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"linkedServiceName": {
+															"referenceName": "SqlServer_OnPrem",
+															"type": "LinkedServiceReference",
+															"parameters": {
+																"ServerName": {
+																	"value": "@item().srcServer",
+																	"type": "Expression"
+																},
+																"DatabaseName": {
+																	"value": "@item().srcDatabase",
+																	"type": "Expression"
+																}
+															}
+														},
+														"typeProperties": {
+															"scripts": [
+																{
+																	"parameters": [
+																		{
+																			"name": "RowCount",
+																			"type": "Int32",
+																			"value": null,
+																			"direction": "Output"
+																		}
+																	],
+																	"type": "Query",
+																	"text": {
+																		"value": "@concat('select @RowCount = count(*) from d365.', item().DestEntity)",
+																		"type": "Expression"
+																	}
+																}
+															],
+															"scriptBlockExecutionTimeout": "02:00:00"
+														}
 													}
 												]
 											},
@@ -16934,7 +17162,7 @@
 														"type": "SqlServerStoredProcedure",
 														"dependsOn": [
 															{
-																"activity": "Local Authorities to SQL",
+																"activity": "Script - Entity RowCount - Local Authorities",
 																"dependencyConditions": [
 																	"Completed"
 																]
@@ -16987,7 +17215,10 @@
 																	"type": "String"
 																},
 																"intDestEntityRowCount": {
-																	"value": null,
+																	"value": {
+																		"value": "@activity('Script - Entity RowCount - Local Authorities').output.outputParameters.RowCount",
+																		"type": "Expression"
+																	},
 																	"type": "Int32"
 																}
 															}
@@ -17058,6 +17289,60 @@
 																}
 															}
 														]
+													},
+													{
+														"name": "Script - Entity RowCount - Local Authorities",
+														"type": "Script",
+														"dependsOn": [
+															{
+																"activity": "Local Authorities to SQL",
+																"dependencyConditions": [
+																	"Completed"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"linkedServiceName": {
+															"referenceName": "SqlServer_OnPrem",
+															"type": "LinkedServiceReference",
+															"parameters": {
+																"ServerName": {
+																	"value": "@item().srcServer",
+																	"type": "Expression"
+																},
+																"DatabaseName": {
+																	"value": "@item().srcDatabase",
+																	"type": "Expression"
+																}
+															}
+														},
+														"typeProperties": {
+															"scripts": [
+																{
+																	"parameters": [
+																		{
+																			"name": "RowCount",
+																			"type": "Int32",
+																			"value": null,
+																			"direction": "Output"
+																		}
+																	],
+																	"type": "Query",
+																	"text": {
+																		"value": "@concat('select @RowCount = count(*) from adf.', item().DestEntity)",
+																		"type": "Expression"
+																	}
+																}
+															],
+															"scriptBlockExecutionTimeout": "02:00:00"
+														}
 													}
 												]
 											},
@@ -17212,7 +17497,7 @@
 														"type": "SqlServerStoredProcedure",
 														"dependsOn": [
 															{
-																"activity": "D365_SystemUser to SQL",
+																"activity": "Script - Entity RowCount - SystemUser",
 																"dependencyConditions": [
 																	"Completed"
 																]
@@ -17265,7 +17550,10 @@
 																	"type": "String"
 																},
 																"intDestEntityRowCount": {
-																	"value": null,
+																	"value": {
+																		"value": "@activity('Script - Entity RowCount - SystemUser').output.outputParameters.RowCount",
+																		"type": "Expression"
+																	},
 																	"type": "Int32"
 																}
 															}
@@ -17336,6 +17624,60 @@
 																}
 															}
 														]
+													},
+													{
+														"name": "Script - Entity RowCount - SystemUser",
+														"type": "Script",
+														"dependsOn": [
+															{
+																"activity": "D365_SystemUser to SQL",
+																"dependencyConditions": [
+																	"Completed"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"linkedServiceName": {
+															"referenceName": "SqlServer_OnPrem",
+															"type": "LinkedServiceReference",
+															"parameters": {
+																"ServerName": {
+																	"value": "@item().srcServer",
+																	"type": "Expression"
+																},
+																"DatabaseName": {
+																	"value": "@item().srcDatabase",
+																	"type": "Expression"
+																}
+															}
+														},
+														"typeProperties": {
+															"scripts": [
+																{
+																	"parameters": [
+																		{
+																			"name": "RowCount",
+																			"type": "Int32",
+																			"value": null,
+																			"direction": "Output"
+																		}
+																	],
+																	"type": "Query",
+																	"text": {
+																		"value": "@concat('select @RowCount = count(*) from d365.', item().DestEntity)",
+																		"type": "Expression"
+																	}
+																}
+															],
+															"scriptBlockExecutionTimeout": "02:00:00"
+														}
 													}
 												]
 											}
@@ -17734,6 +18076,7 @@
 				"[concat(variables('factoryId'), '/datasets/DS_Dataverse')]",
 				"[concat(variables('factoryId'), '/datasets/DS_SQL_OnPrem_Tbl')]",
 				"[concat(variables('factoryId'), '/datasets/DS_SQL_Control_Tbl')]",
+				"[concat(variables('factoryId'), '/linkedServices/SqlServer_OnPrem')]",
 				"[concat(variables('factoryId'), '/datasets/DS_Excel_ReferenceEntityCodeMap')]",
 				"[concat(variables('factoryId'), '/datasets/DS_Excel_LocalAuthorities')]"
 			]
