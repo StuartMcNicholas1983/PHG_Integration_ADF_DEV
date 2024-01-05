@@ -198,7 +198,10 @@
 											"value": "@item().DatalakeContainer",
 											"type": "Expression"
 										},
-										"Directory": "OH_D365_DataSync/Transformed/",
+										"Directory": {
+											"value": "@concat(item().Pipeline, '/Duplicates/', item().srcSystem )",
+											"type": "Expression"
+										},
 										"Filename": {
 											"value": "@concat(item().srcSystem,'_SourceSystemEntityDuplicates.csv')",
 											"type": "Expression"
@@ -228,7 +231,10 @@
 											"value": "@item().DatalakeContainer",
 											"type": "Expression"
 										},
-										"Directory": "OH_D365_DataSync/Transformed/",
+										"Directory": {
+											"value": "@concat(item().Pipeline, '/Duplicates/', item().srcSystem )",
+											"type": "Expression"
+										},
 										"Filename": {
 											"value": "@concat(item().srcSystem,'_SourceSystemEntityDuplicates.csv')",
 											"type": "Expression"
