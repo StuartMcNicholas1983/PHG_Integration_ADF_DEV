@@ -364,6 +364,12 @@
 								"dependencyConditions": [
 									"Succeeded"
 								]
+							},
+							{
+								"activity": "PipelineAuditLog - Start",
+								"dependencyConditions": [
+									"Succeeded"
+								]
 							}
 						],
 						"policy": {
@@ -1107,7 +1113,14 @@
 										{
 											"name": "Control - Reset PipelineRunsToday - Incremental",
 											"type": "SqlServerStoredProcedure",
-											"dependsOn": [],
+											"dependsOn": [
+												{
+													"activity": "Entity Duplicates",
+													"dependencyConditions": [
+														"Succeeded"
+													]
+												}
+											],
 											"policy": {
 												"timeout": "0.12:00:00",
 												"retry": 0,
@@ -1122,6 +1135,25 @@
 											"linkedServiceName": {
 												"referenceName": "Control",
 												"type": "LinkedServiceReference"
+											}
+										},
+										{
+											"name": "Entity Duplicates",
+											"type": "ExecutePipeline",
+											"dependsOn": [],
+											"userProperties": [],
+											"typeProperties": {
+												"pipeline": {
+													"referenceName": "PL_EntityDuplicates",
+													"type": "PipelineReference"
+												},
+												"waitOnCompletion": true,
+												"parameters": {
+													"PipelineName": {
+														"value": "@pipeline().parameters.PipelineName",
+														"type": "Expression"
+													}
+												}
 											}
 										}
 									]
@@ -1496,32 +1528,6 @@
 								}
 							]
 						}
-					},
-					{
-						"name": "Entity Duplicates",
-						"type": "ExecutePipeline",
-						"dependsOn": [
-							{
-								"activity": "LoadType",
-								"dependencyConditions": [
-									"Failed"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"pipeline": {
-								"referenceName": "PL_EntityDuplicates",
-								"type": "PipelineReference"
-							},
-							"waitOnCompletion": true,
-							"parameters": {
-								"PipelineName": {
-									"value": "@pipeline().parameters.PipelineName",
-									"type": "Expression"
-								}
-							}
-						}
 					}
 				],
 				"concurrency": 1,
@@ -1562,7 +1568,6 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/DS_SQL_Control')]",
 				"[concat(variables('factoryId'), '/linkedServices/Control')]",
-				"[concat(variables('factoryId'), '/pipelines/PL_EntityDuplicates')]",
 				"[concat(variables('factoryId'), '/pipelines/PL_ReferenceEntities')]",
 				"[concat(variables('factoryId'), '/pipelines/PL_CoreEntities_A')]",
 				"[concat(variables('factoryId'), '/linkedServices/SqlServer_OnPrem')]",
@@ -1573,6 +1578,7 @@
 				"[concat(variables('factoryId'), '/pipelines/PL_CoreEntities_C')]",
 				"[concat(variables('factoryId'), '/pipelines/PL_InactiveEntities')]",
 				"[concat(variables('factoryId'), '/pipelines/PL_FullLoadReset')]",
+				"[concat(variables('factoryId'), '/pipelines/PL_EntityDuplicates')]",
 				"[concat(variables('factoryId'), '/pipelines/PL_DailyReset')]",
 				"[concat(variables('factoryId'), '/pipelines/PL_FullLoadReset_Post')]"
 			]
@@ -12582,7 +12588,14 @@
 					{
 						"name": "SourceSystems",
 						"type": "Lookup",
-						"dependsOn": [],
+						"dependsOn": [
+							{
+								"activity": "PipelineAuditLog - Start",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
 						"policy": {
 							"timeout": "0.12:00:00",
 							"retry": 0,
@@ -12635,9 +12648,16 @@
 							"isSequential": true,
 							"activities": [
 								{
-									"name": "Copy data1",
+									"name": "Staging to Transformed",
 									"type": "Copy",
-									"dependsOn": [],
+									"dependsOn": [
+										{
+											"activity": "Delete Transformed",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
 									"policy": {
 										"timeout": "0.12:00:00",
 										"retry": 0,
@@ -12654,10 +12674,15 @@
 											"partitionOption": "None"
 										},
 										"sink": {
-											"type": "AzureSqlSink",
-											"writeBehavior": "insert",
-											"sqlWriterUseTableLock": false,
-											"disableMetricsCollection": false
+											"type": "DelimitedTextSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "DelimitedTextWriteSettings",
+												"quoteAllText": true,
+												"fileExtension": ".txt"
+											}
 										},
 										"enableStaging": false,
 										"translator": {
@@ -12750,6 +12775,198 @@
 									],
 									"outputs": [
 										{
+											"referenceName": "DS_Datalake_PipeDelimited",
+											"type": "DatasetReference",
+											"parameters": {
+												"Container": {
+													"value": "@item().DatalakeContainer",
+													"type": "Expression"
+												},
+												"Directory": {
+													"value": "@concat(item().Pipeline, '/Duplicates/', item().srcSystem )",
+													"type": "Expression"
+												},
+												"Filename": {
+													"value": "@concat(item().srcSystem,'_EntityDuplicates.csv')",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								},
+								{
+									"name": "Delete Transformed",
+									"type": "Delete",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataset": {
+											"referenceName": "DS_Datalake_PipeDelimited",
+											"type": "DatasetReference",
+											"parameters": {
+												"Container": {
+													"value": "@item().DatalakeContainer",
+													"type": "Expression"
+												},
+												"Directory": {
+													"value": "@concat(item().Pipeline, '/Duplicates/', item().srcSystem )",
+													"type": "Expression"
+												},
+												"Filename": {
+													"value": "@concat(item().srcSystem,'_EntityDuplicates.csv')",
+													"type": "Expression"
+												}
+											}
+										},
+										"enableLogging": false,
+										"storeSettings": {
+											"type": "AzureBlobFSReadSettings",
+											"recursive": true,
+											"enablePartitionDiscovery": false
+										}
+									}
+								},
+								{
+									"name": "Transformed to Control",
+									"type": "Copy",
+									"dependsOn": [
+										{
+											"activity": "Staging to Transformed",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "DelimitedTextSource",
+											"storeSettings": {
+												"type": "AzureBlobFSReadSettings",
+												"recursive": true,
+												"enablePartitionDiscovery": false
+											},
+											"formatSettings": {
+												"type": "DelimitedTextReadSettings"
+											}
+										},
+										"sink": {
+											"type": "AzureSqlSink",
+											"preCopyScript": {
+												"value": "@concat('delete from [dbo].[SourceSystemEntityDuplicates] where SrcSystem = ''',item().srcSystem, '''' )",
+												"type": "Expression"
+											},
+											"writeBehavior": "insert",
+											"sqlWriterUseTableLock": false
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"mappings": [
+												{
+													"source": {
+														"name": "SrcSystem",
+														"type": "String",
+														"physicalType": "String"
+													},
+													"sink": {
+														"name": "SrcSystem",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												},
+												{
+													"source": {
+														"name": "EntityView",
+														"type": "String",
+														"physicalType": "String"
+													},
+													"sink": {
+														"name": "EntityView",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												},
+												{
+													"source": {
+														"name": "EntityAttribute",
+														"type": "String",
+														"physicalType": "String"
+													},
+													"sink": {
+														"name": "EntityAttribute",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												},
+												{
+													"source": {
+														"name": "AttributeValue",
+														"type": "String",
+														"physicalType": "String"
+													},
+													"sink": {
+														"name": "AttributeValue",
+														"type": "String",
+														"physicalType": "nvarchar"
+													}
+												},
+												{
+													"source": {
+														"name": "AttributeDuplicates",
+														"type": "String",
+														"physicalType": "String"
+													},
+													"sink": {
+														"name": "AttributeDuplicates",
+														"type": "Int32",
+														"physicalType": "int"
+													}
+												}
+											],
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_Datalake_PipeDelimited",
+											"type": "DatasetReference",
+											"parameters": {
+												"Container": {
+													"value": "@item().DatalakeContainer",
+													"type": "Expression"
+												},
+												"Directory": {
+													"value": "@concat(item().Pipeline, '/Duplicates/', item().srcSystem )",
+													"type": "Expression"
+												},
+												"Filename": {
+													"value": "@concat(item().srcSystem,'_EntityDuplicates.csv')",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
 											"referenceName": "DS_SQL_Control_Tbl",
 											"type": "DatasetReference",
 											"parameters": {
@@ -12761,6 +12978,297 @@
 								}
 							]
 						}
+					},
+					{
+						"name": "RunStart",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "RunStart",
+							"value": {
+								"value": "@string(utcNow())",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "RunEnd",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "SourceSystem",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "RunEnd",
+							"value": {
+								"value": "@string(utcNow())",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Duration_SS",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "RunEnd",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "Duration_SS",
+							"value": {
+								"value": "@string(div(sub(ticks(formatDateTime(variables('RunEnd'))),ticks(formatDateTime(variables('RunStart')))),10000000))",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "PipelineAuditLog - Start",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "RunStart",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[spInsert_PipelineAuditLog_Start]",
+							"storedProcedureParameters": {
+								"dtRunStart": {
+									"value": {
+										"value": "@variables('RunStart')",
+										"type": "Expression"
+									},
+									"type": "DateTime"
+								},
+								"dtTriggerTime": {
+									"value": {
+										"value": "@pipeline().TriggerTime",
+										"type": "Expression"
+									},
+									"type": "DateTime"
+								},
+								"strDataFactory": {
+									"value": {
+										"value": "@pipeline().DataFactory",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"strLoadType": {
+									"value": {
+										"value": "@pipeline().parameters.LoadType",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"strPipeline": {
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"strSequenceList": {
+									"value": "[[-]",
+									"type": "String"
+								},
+								"strStatus": {
+									"value": "In Progress",
+									"type": "String"
+								},
+								"strTriggeredByPipelineName": {
+									"value": {
+										"value": "@{pipeline()?.TriggeredByPipelineName}",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"strTriggeredByPipelineRunID": {
+									"value": {
+										"value": "@{pipeline()?.TriggeredByPipelineRunId}",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"strTriggerName": {
+									"value": {
+										"value": "@{pipeline().TriggerName}",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"strTriggerType": {
+									"value": {
+										"value": "@{pipeline().TriggerType}",
+										"type": "Expression"
+									},
+									"type": "String"
+								},
+								"uniqGroupID": {
+									"value": {
+										"value": "@{pipeline().GroupId}",
+										"type": "Expression"
+									},
+									"type": "Guid"
+								},
+								"uniqRunID": {
+									"value": {
+										"value": "@pipeline().RunId",
+										"type": "Expression"
+									},
+									"type": "Guid"
+								},
+								"uniqTriggerID": {
+									"value": {
+										"value": "@guid()",
+										"type": "Expression"
+									},
+									"type": "Guid"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "Control",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "PipelineAuditLog - End - Failed",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "SourceSystem",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[spUpdate_PipelineAuditLog_End]",
+							"storedProcedureParameters": {
+								"dtRunEnd": {
+									"value": {
+										"value": "@utcnow()",
+										"type": "Expression"
+									},
+									"type": "DateTime"
+								},
+								"intDuration_SS": {
+									"value": "0",
+									"type": "Int32"
+								},
+								"strStatus": {
+									"value": "Failed",
+									"type": "String"
+								},
+								"uniqRunID": {
+									"value": {
+										"value": "@pipeline().RunId",
+										"type": "Expression"
+									},
+									"type": "Guid"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "Control",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "PipelineAuditLog - End - Success",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Duration_SS",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[spUpdate_PipelineAuditLog_End]",
+							"storedProcedureParameters": {
+								"dtRunEnd": {
+									"value": {
+										"value": "@variables('RunEnd')",
+										"type": "Expression"
+									},
+									"type": "DateTime"
+								},
+								"intDuration_SS": {
+									"value": {
+										"value": "@variables('Duration_SS')",
+										"type": "Expression"
+									},
+									"type": "Int32"
+								},
+								"strStatus": {
+									"value": "Succeeded",
+									"type": "String"
+								},
+								"uniqRunID": {
+									"value": {
+										"value": "@pipeline().RunId",
+										"type": "Expression"
+									},
+									"type": "Guid"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "Control",
+							"type": "LinkedServiceReference"
+						}
 					}
 				],
 				"policy": {
@@ -12769,16 +13277,32 @@
 				"parameters": {
 					"PipelineName": {
 						"type": "string"
+					},
+					"LoadType": {
+						"type": "string"
+					}
+				},
+				"variables": {
+					"RunStart": {
+						"type": "String"
+					},
+					"RunEnd": {
+						"type": "String"
+					},
+					"Duration_SS": {
+						"type": "String"
 					}
 				},
 				"folder": {
-					"name": "OH_D365_DataSync/Child Packages/Duplicates"
+					"name": "OH_D365_DataSync/Child Packages/Misc"
 				},
 				"annotations": []
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/DS_SQL_Control')]",
+				"[concat(variables('factoryId'), '/linkedServices/Control')]",
 				"[concat(variables('factoryId'), '/datasets/DS_SQL_OnPrem')]",
+				"[concat(variables('factoryId'), '/datasets/DS_Datalake_PipeDelimited')]",
 				"[concat(variables('factoryId'), '/datasets/DS_SQL_Control_Tbl')]"
 			]
 		},
@@ -22095,95 +22619,6 @@
 				"[concat(variables('factoryId'), '/datasets/DS_SQL_OnPrem_Tbl')]",
 				"[concat(variables('factoryId'), '/linkedServices/SqlServer_OnPrem')]",
 				"[concat(variables('factoryId'), '/datasets/DS_Dataverse')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Script1",
-						"type": "Script",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"linkedServiceName": {
-							"referenceName": "SqlServer_OnPrem",
-							"type": "LinkedServiceReference",
-							"parameters": {
-								"ServerName": "BBP-OHSQLTST-01\\RENTS",
-								"DatabaseName": "OH_D365_Config_DEV"
-							}
-						},
-						"typeProperties": {
-							"scripts": [
-								{
-									"parameters": [
-										{
-											"name": "RecordCount",
-											"type": "Int32",
-											"value": null,
-											"direction": "Output"
-										}
-									],
-									"type": "Query",
-									"text": {
-										"value": "@concat('select @RecordCount = count(*) from d365.', 'phg_property')",
-										"type": "Expression"
-									}
-								}
-							],
-							"scriptBlockExecutionTimeout": "02:00:00"
-						}
-					},
-					{
-						"name": "Set variable1",
-						"type": "SetVariable",
-						"dependsOn": [
-							{
-								"activity": "Script1",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"variableName": "varRecordCount",
-							"value": {
-								"value": "@activity('Script1').output.outputParameters.RecordCount",
-								"type": "Expression"
-							}
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"variables": {
-					"varRecordCount": {
-						"type": "Integer"
-					}
-				},
-				"folder": {
-					"name": "OH_D365_DataSync"
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/SqlServer_OnPrem')]"
 			]
 		},
 		{
