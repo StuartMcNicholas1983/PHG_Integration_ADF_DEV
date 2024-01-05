@@ -1011,7 +1011,14 @@
 								{
 									"name": "Control - Reset PipelineRunsToday - Incremental",
 									"type": "SqlServerStoredProcedure",
-									"dependsOn": [],
+									"dependsOn": [
+										{
+											"activity": "Entity Duplicates",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
 									"policy": {
 										"timeout": "0.12:00:00",
 										"retry": 0,
@@ -1026,6 +1033,25 @@
 									"linkedServiceName": {
 										"referenceName": "Control",
 										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "Entity Duplicates",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "PL_EntityDuplicates",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"PipelineName": {
+												"value": "@pipeline().parameters.PipelineName",
+												"type": "Expression"
+											}
+										}
 									}
 								}
 							]
@@ -1398,32 +1424,6 @@
 							]
 						}
 					]
-				}
-			},
-			{
-				"name": "Entity Duplicates",
-				"type": "ExecutePipeline",
-				"dependsOn": [
-					{
-						"activity": "LoadType",
-						"dependencyConditions": [
-							"Failed"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"pipeline": {
-						"referenceName": "PL_EntityDuplicates",
-						"type": "PipelineReference"
-					},
-					"waitOnCompletion": true,
-					"parameters": {
-						"PipelineName": {
-							"value": "@pipeline().parameters.PipelineName",
-							"type": "Expression"
-						}
-					}
 				}
 			}
 		],

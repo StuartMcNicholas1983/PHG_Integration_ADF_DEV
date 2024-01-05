@@ -5,7 +5,14 @@
 			{
 				"name": "SourceSystems",
 				"type": "Lookup",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "RunStart",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 0,
@@ -183,11 +190,60 @@
 						}
 					]
 				}
+			},
+			{
+				"name": "RunStart",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "RunStart",
+					"value": {
+						"value": "@string(utcNow())",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "RunEnd",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "SourceSystem",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "RunEnd",
+					"value": ""
+				}
 			}
 		],
 		"parameters": {
 			"PipelineName": {
 				"type": "string"
+			}
+		},
+		"variables": {
+			"RunStart": {
+				"type": "String"
+			},
+			"RunEnd": {
+				"type": "String"
+			},
+			"Duration_SS": {
+				"type": "String"
 			}
 		},
 		"folder": {
