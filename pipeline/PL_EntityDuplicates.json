@@ -101,6 +101,7 @@
 									}
 								},
 								"enableStaging": false,
+								"enableSkipIncompatibleRow": false,
 								"translator": {
 									"type": "TabularTranslator",
 									"mappings": [
@@ -388,6 +389,128 @@
 									"parameters": {
 										"SchemaName": "dbo",
 										"TableName": "SourceSystemEntityDuplicates"
+									}
+								}
+							]
+						},
+						{
+							"name": "PipelineAuditDetailLog_1",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Staging to Transformed",
+									"dependencyConditions": [
+										"Completed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": {
+										"value": "SELECT \n\n'@{pipeline().DataFactory}' as DataFactoryName,\n'@{pipeline().Pipeline}' as PipelineName,\n'@{pipeline().RunId}' as RunID,\n\n'@{item().SrcSystem}' as SrcSystem,\n'@{item().SrcStoredProcedure}' as Source,\n'@{item().DestEntity}' as Destination,\n'Staging to Transformed' as CopyActivity,\n\n'@{pipeline().TriggerType}' as TriggerType,\n'@{pipeline().TriggerId}' as TriggerID,\n'@{pipeline().TriggerName}' as TriggerName,\n'@{pipeline().TriggerTime}' as TriggerTime,\n\n'@{activity('Staging to Transformed').output.rowsCopied}' as RowsCopied,\n'@{activity('Staging to Transformed').output.rowsRead}' as RowsRead,\n0 as RowsSkipped,\n'@{activity('Staging to Transformed').output.usedParallelCopies}' as ParallelCopies,\n'@{activity('Staging to Transformed').output.copyDuration}' as CopyDuration_SS,\n'@{activity('Staging to Transformed').output.effectiveIntegrationRuntime}' as EffectiveIntegrationRuntime,\n\n'@{activity('Staging to Transformed').output.executionDetails[0].source.type}' as SourceType,\n'@{activity('Staging to Transformed').output.executionDetails[0].sink.type}' as SinkType,\n'@{activity('Staging to Transformed').output.executionDetails[0].status}' as ExecutionStatus,\n'@{activity('Staging to Transformed').output.executionDetails[0].start}' as CopyActivity_StartTime,\n'@{utcnow()}' as CopyActivity_EndTime,\n'@{activity('Staging to Transformed').output.executionDetails[0].detailedDurations.queuingDuration}' as CopyActivity_QueuingDuration_SS,\n'@{activity('Staging to Transformed').output.executionDetails[0].detailedDurations.queuingDuration}' as CopyActivity_TimeToFirstByte_SS,\n'@{activity('Staging to Transformed').output.executionDetails[0].detailedDurations.transferDuration}' as CopyActivity_TransferDuration_SS,\n1 as CopyActivity_Stage,\n'-' as SequenceGroup\n",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "AzureSqlSink",
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_SQL_Control",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_SQL_Control_Tbl",
+									"type": "DatasetReference",
+									"parameters": {
+										"SchemaName": "dbo",
+										"TableName": "PipelineAuditDetailLog"
+									}
+								}
+							]
+						},
+						{
+							"name": "PipelineAuditDetailLog_2",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "Transformed to Control",
+									"dependencyConditions": [
+										"Completed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": {
+										"value": "SELECT \n\n'@{pipeline().DataFactory}' as DataFactoryName,\n'@{pipeline().Pipeline}' as PipelineName,\n'@{pipeline().RunId}' as RunID,\n\n'@{item().SrcSystem}' as SrcSystem,\n'@{item().SrcStoredProcedure}' as Source,\n'@{item().DestEntity}' as Destination,\n'Transformed to Destination' as CopyActivity,\n\n'@{pipeline().TriggerType}' as TriggerType,\n'@{pipeline().TriggerId}' as TriggerID,\n'@{pipeline().TriggerName}' as TriggerName,\n'@{pipeline().TriggerTime}' as TriggerTime,\n\n'@{activity('Transformed to Control').output.rowsCopied}' as RowsCopied,\n'@{activity('Transformed to Control').output.rowsRead}' as RowsRead,\n0 as RowsSkipped,\n'@{activity('Transformed to Control').output.usedParallelCopies}' as ParallelCopies,\n'@{activity('Transformed to Control').output.copyDuration}' as CopyDuration_SS,\n'@{activity('Transformed to Control').output.effectiveIntegrationRuntime}' as EffectiveIntegrationRuntime,\n\n'@{activity('Transformed to Control').output.executionDetails[0].source.type}' as SourceType,\n'@{activity('Transformed to Control').output.executionDetails[0].sink.type}' as SinkType,\n'@{activity('Transformed to Control').output.executionDetails[0].status}' as ExecutionStatus,\n'@{activity('Transformed to Control').output.executionDetails[0].start}' as CopyActivity_StartTime,\n'@{utcnow()}' as CopyActivity_EndTime,\n'@{activity('Transformed to Control').output.executionDetails[0].detailedDurations.queuingDuration}' as CopyActivity_QueuingDuration_SS,\n'@{activity('Transformed to Control').output.executionDetails[0].detailedDurations.queuingDuration}' as CopyActivity_TimeToFirstByte_SS,\n'@{activity('Transformed to Control').output.executionDetails[0].detailedDurations.transferDuration}' as CopyActivity_TransferDuration_SS,\n2 as CopyActivity_Stage,\n'-' as SequenceGroup\n",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "AzureSqlSink",
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_SQL_Control",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_SQL_Control_Tbl",
+									"type": "DatasetReference",
+									"parameters": {
+										"SchemaName": "dbo",
+										"TableName": "PipelineAuditDetailLog"
 									}
 								}
 							]
