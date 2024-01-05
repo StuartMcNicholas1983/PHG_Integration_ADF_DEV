@@ -64,9 +64,16 @@
 					"isSequential": true,
 					"activities": [
 						{
-							"name": "Copy data1",
+							"name": "Staging to Transformed",
 							"type": "Copy",
-							"dependsOn": [],
+							"dependsOn": [
+								{
+									"activity": "Delete Transformed",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
 							"policy": {
 								"timeout": "0.12:00:00",
 								"retry": 0,
@@ -83,10 +90,15 @@
 									"partitionOption": "None"
 								},
 								"sink": {
-									"type": "AzureSqlSink",
-									"writeBehavior": "insert",
-									"sqlWriterUseTableLock": false,
-									"disableMetricsCollection": false
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
 								},
 								"enableStaging": false,
 								"translator": {
@@ -179,14 +191,57 @@
 							],
 							"outputs": [
 								{
-									"referenceName": "DS_SQL_Control_Tbl",
+									"referenceName": "DS_Datalake_PipeDelimited",
 									"type": "DatasetReference",
 									"parameters": {
-										"SchemaName": "dbo",
-										"TableName": "SourceSystemEntityDuplicates"
+										"Container": {
+											"value": "@item().DatalakeContainer",
+											"type": "Expression"
+										},
+										"Directory": "OH_D365_DataSync/Transformed/",
+										"Filename": {
+											"value": "@concat(item().srcSystem,'_SourceSystemEntityDuplicates.csv')",
+											"type": "Expression"
+										}
 									}
 								}
 							]
+						},
+						{
+							"name": "Delete Transformed",
+							"type": "Delete",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "DS_Datalake_PipeDelimited",
+									"type": "DatasetReference",
+									"parameters": {
+										"Container": {
+											"value": "@item().DatalakeContainer",
+											"type": "Expression"
+										},
+										"Directory": "OH_D365_DataSync/Transformed/",
+										"Filename": {
+											"value": "@concat(item().srcSystem,'_SourceSystemEntityDuplicates.csv')",
+											"type": "Expression"
+										}
+									}
+								},
+								"enableLogging": true,
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								}
+							}
 						}
 					]
 				}
@@ -366,6 +421,111 @@
 						"uniqTriggerID": {
 							"value": {
 								"value": "@guid()",
+								"type": "Expression"
+							},
+							"type": "Guid"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "Control",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "PipelineAuditLog - End - Failed",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "SourceSystem",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[spUpdate_PipelineAuditLog_End]",
+					"storedProcedureParameters": {
+						"dtRunEnd": {
+							"value": {
+								"value": "@utcnow()",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"intDuration_SS": {
+							"value": "0",
+							"type": "Int32"
+						},
+						"strStatus": {
+							"value": "Failed",
+							"type": "String"
+						},
+						"uniqRunID": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "Guid"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "Control",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "PipelineAuditLog - End - Success",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Duration_SS",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[spUpdate_PipelineAuditLog_End]",
+					"storedProcedureParameters": {
+						"dtRunEnd": {
+							"value": {
+								"value": "@variables('RunEnd')",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"intDuration_SS": {
+							"value": {
+								"value": "@variables('Duration_SS')",
+								"type": "Expression"
+							},
+							"type": "Int32"
+						},
+						"strStatus": {
+							"value": "Succeeded",
+							"type": "String"
+						},
+						"uniqRunID": {
+							"value": {
+								"value": "@pipeline().RunId",
 								"type": "Expression"
 							},
 							"type": "Guid"
