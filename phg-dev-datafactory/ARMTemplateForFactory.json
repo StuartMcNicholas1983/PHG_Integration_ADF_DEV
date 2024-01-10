@@ -21500,6 +21500,10 @@
 																					"type": "Expression"
 																				},
 																				"type": "String"
+																			},
+																			"intDestEntityRowCount": {
+																				"value": null,
+																				"type": "Int32"
 																			}
 																		}
 																	},
@@ -21905,6 +21909,10 @@
 																					"type": "Expression"
 																				},
 																				"type": "String"
+																			},
+																			"intDestEntityRowCount": {
+																				"value": null,
+																				"type": "Int32"
 																			}
 																		}
 																	},
