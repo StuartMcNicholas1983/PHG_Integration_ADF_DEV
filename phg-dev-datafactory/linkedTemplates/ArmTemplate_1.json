@@ -49,6 +49,71 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/DF_DeleteEntityData')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "OH_D365_DataSync/Delete"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DS_Datalake_PipeDelimited",
+								"type": "DatasetReference"
+							},
+							"name": "DeletionData"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DS_Dataverse",
+								"type": "DatasetReference"
+							},
+							"name": "SinkDelete"
+						}
+					],
+					"transformations": [
+						{
+							"name": "AlterRowProperty"
+						},
+						{
+							"name": "SelectColumn"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          Entity as string,",
+						"          phg_integrationkey as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> DeletionData",
+						"SelectColumn alterRow(deleteIf(true())) ~> AlterRowProperty",
+						"DeletionData select(mapColumn(",
+						"          phg_integrationkey",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelectColumn",
+						"AlterRowProperty sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:true,",
+						"     insertable:false,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     alternateKeyName: 'phg_integrationkey',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 0) ~> SinkDelete"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/PL_CoreEntities_A')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -1728,7 +1793,7 @@
 					"name": "OH_D365_DataSync/Child Packages"
 				},
 				"annotations": [],
-				"lastPublishTime": "2023-11-17T16:55:46Z"
+				"lastPublishTime": "2024-01-22T15:35:39Z"
 			},
 			"dependsOn": []
 		},
@@ -5010,7 +5075,7 @@
 					"name": "OH_D365_DataSync/Child Packages"
 				},
 				"annotations": [],
-				"lastPublishTime": "2023-11-20T14:40:41Z"
+				"lastPublishTime": "2024-01-22T15:35:39Z"
 			},
 			"dependsOn": []
 		},
@@ -8437,7 +8502,7 @@
 					"name": "OH_D365_DataSync/Child Packages"
 				},
 				"annotations": [],
-				"lastPublishTime": "2023-11-17T16:55:46Z"
+				"lastPublishTime": "2024-01-22T15:35:39Z"
 			},
 			"dependsOn": []
 		},
@@ -9707,9 +9772,11 @@
 					"name": "OH_D365_DataSync/Child Packages"
 				},
 				"annotations": [],
-				"lastPublishTime": "2023-11-17T16:55:46Z"
+				"lastPublishTime": "2024-01-25T11:37:10Z"
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/DF_DeleteEntityData')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/PL_EntityDuplicates')]",
@@ -10553,7 +10620,8 @@
 				"folder": {
 					"name": "OH_D365_DataSync/Child Packages/Misc"
 				},
-				"annotations": []
+				"annotations": [],
+				"lastPublishTime": "2024-01-05T22:49:38Z"
 			},
 			"dependsOn": []
 		},
@@ -11292,7 +11360,7 @@
 					"name": "OH_D365_DataSync/Child Packages/Reset"
 				},
 				"annotations": [],
-				"lastPublishTime": "2023-11-20T17:01:48Z"
+				"lastPublishTime": "2024-01-25T11:37:10Z"
 			},
 			"dependsOn": []
 		},
@@ -12979,7 +13047,7 @@
 					"name": "OH_D365_DataSync/Child Packages"
 				},
 				"annotations": [],
-				"lastPublishTime": "2023-11-17T16:55:46Z"
+				"lastPublishTime": "2024-01-01T00:06:50Z"
 			},
 			"dependsOn": []
 		},
@@ -15413,7 +15481,7 @@
 					"name": "OH_D365_DataSync/Child Packages"
 				},
 				"annotations": [],
-				"lastPublishTime": "2023-11-20T23:49:15Z"
+				"lastPublishTime": "2024-01-02T23:04:40Z"
 			},
 			"dependsOn": []
 		},
@@ -17478,7 +17546,7 @@
 					"name": "OH_D365_DataSync/Child Packages"
 				},
 				"annotations": [],
-				"lastPublishTime": "2023-11-17T16:55:46Z"
+				"lastPublishTime": "2023-12-31T19:23:17Z"
 			},
 			"dependsOn": []
 		},
@@ -19314,7 +19382,7 @@
 					"name": "OH_D365_DataSync/Child Packages"
 				},
 				"annotations": [],
-				"lastPublishTime": "2023-11-17T16:55:46Z"
+				"lastPublishTime": "2024-01-16T21:58:59Z"
 			},
 			"dependsOn": []
 		},
@@ -19407,6 +19475,9 @@
 									"name": "Reference Entities",
 									"type": "ExecutePipeline",
 									"dependsOn": [],
+									"policy": {
+										"secureInput": false
+									},
 									"userProperties": [],
 									"typeProperties": {
 										"pipeline": {
@@ -19520,6 +19591,9 @@
 									"name": "Core Entities_A",
 									"type": "ExecutePipeline",
 									"dependsOn": [],
+									"policy": {
+										"secureInput": false
+									},
 									"userProperties": [],
 									"typeProperties": {
 										"pipeline": {
@@ -19633,6 +19707,9 @@
 									"name": "Lookup Entities",
 									"type": "ExecutePipeline",
 									"dependsOn": [],
+									"policy": {
+										"secureInput": false
+									},
 									"userProperties": [],
 									"typeProperties": {
 										"pipeline": {
@@ -19746,6 +19823,9 @@
 									"name": "Delete Entities",
 									"type": "ExecutePipeline",
 									"dependsOn": [],
+									"policy": {
+										"secureInput": false
+									},
 									"userProperties": [],
 									"typeProperties": {
 										"pipeline": {
@@ -19859,6 +19939,9 @@
 									"name": "Transactional Entities",
 									"type": "ExecutePipeline",
 									"dependsOn": [],
+									"policy": {
+										"secureInput": false
+									},
 									"userProperties": [],
 									"typeProperties": {
 										"pipeline": {
@@ -20037,6 +20120,9 @@
 									"name": "Core_B Entities",
 									"type": "ExecutePipeline",
 									"dependsOn": [],
+									"policy": {
+										"secureInput": false
+									},
 									"userProperties": [],
 									"typeProperties": {
 										"pipeline": {
@@ -20150,6 +20236,9 @@
 									"name": "Core_C Entities",
 									"type": "ExecutePipeline",
 									"dependsOn": [],
+									"policy": {
+										"secureInput": false
+									},
 									"userProperties": [],
 									"typeProperties": {
 										"pipeline": {
@@ -20205,6 +20294,9 @@
 											"name": "Full Load",
 											"type": "ExecutePipeline",
 											"dependsOn": [],
+											"policy": {
+												"secureInput": false
+											},
 											"userProperties": [],
 											"typeProperties": {
 												"pipeline": {
@@ -20236,7 +20328,17 @@
 										{
 											"name": "Entity Duplicates",
 											"type": "ExecutePipeline",
-											"dependsOn": [],
+											"dependsOn": [
+												{
+													"activity": "Daily Load",
+													"dependencyConditions": [
+														"Succeeded"
+													]
+												}
+											],
+											"policy": {
+												"secureInput": false
+											},
 											"userProperties": [],
 											"typeProperties": {
 												"pipeline": {
@@ -20253,30 +20355,33 @@
 											}
 										},
 										{
-											"name": "Control - Reset PipelineRunsToday - Incremental",
-											"type": "SqlServerStoredProcedure",
-											"dependsOn": [
-												{
-													"activity": "Entity Duplicates",
-													"dependencyConditions": [
-														"Completed"
-													]
-												}
-											],
+											"name": "Daily Load",
+											"type": "ExecutePipeline",
+											"dependsOn": [],
 											"policy": {
-												"timeout": "0.12:00:00",
-												"retry": 0,
-												"retryIntervalInSeconds": 30,
-												"secureOutput": false,
 												"secureInput": false
 											},
 											"userProperties": [],
 											"typeProperties": {
-												"storedProcedureName": "[[dbo].[spUpdate_PipelineParameters_PipelineRunsToday]"
-											},
-											"linkedServiceName": {
-												"referenceName": "Control",
-												"type": "LinkedServiceReference"
+												"pipeline": {
+													"referenceName": "PL_DailyLoad",
+													"type": "PipelineReference"
+												},
+												"waitOnCompletion": true,
+												"parameters": {
+													"PipelineName": {
+														"value": "@pipeline().parameters.PipelineName",
+														"type": "Expression"
+													},
+													"LoadType": {
+														"value": "@pipeline().parameters.LoadType",
+														"type": "Expression"
+													},
+													"LastTransactionalDate": {
+														"value": "@pipeline().parameters.LastTransactionalDate",
+														"type": "Expression"
+													}
+												}
 											}
 										}
 									]
@@ -20545,6 +20650,9 @@
 									"name": "Inactive Entities",
 									"type": "ExecutePipeline",
 									"dependsOn": [],
+									"policy": {
+										"secureInput": false
+									},
 									"userProperties": [],
 									"typeProperties": {
 										"pipeline": {
@@ -20600,6 +20708,9 @@
 											"name": "Full Load - Post",
 											"type": "ExecutePipeline",
 											"dependsOn": [],
+											"policy": {
+												"secureInput": false
+											},
 											"userProperties": [],
 											"typeProperties": {
 												"pipeline": {
@@ -20628,6 +20739,9 @@
 											"name": "Daily Load - Post",
 											"type": "ExecutePipeline",
 											"dependsOn": [],
+											"policy": {
+												"secureInput": false
+											},
 											"userProperties": [],
 											"typeProperties": {
 												"pipeline": {
@@ -20689,7 +20803,7 @@
 					"name": "OH_D365_DataSync"
 				},
 				"annotations": [],
-				"lastPublishTime": "2023-11-17T16:55:47Z"
+				"lastPublishTime": "2024-01-25T11:37:10Z"
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/pipelines/PL_ReferenceEntities')]",
