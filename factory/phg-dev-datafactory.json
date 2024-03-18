@@ -10,8 +10,14 @@
 	},
 	"location": "ukwest",
 	"identity": {
-		"type": "SystemAssigned",
+		"type": "SystemAssigned,UserAssigned",
 		"principalId": "f5e07203-9e02-4dd4-a889-26514db80fc5",
-		"tenantId": "668364d4-3d43-4051-adbc-5bbb517a46fc"
+		"tenantId": "668364d4-3d43-4051-adbc-5bbb517a46fc",
+		"userAssignedIdentities": {
+			"/subscriptions/83e38fc3-11f8-44f0-87d5-048acb1450dc/resourcegroups/PLATFORM_Development/providers/Microsoft.ManagedIdentity/userAssignedIdentities/UAMA_Dev": {
+				"clientId": "b12ee73c-f825-45d0-98fa-d90004ee61ba",
+				"principalId": "b64bff40-f4fa-4dc1-8e22-9640962b1bad"
+			}
+		}
 	}
 }
